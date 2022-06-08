@@ -1,42 +1,44 @@
-//MOTO SERVO MOTORE GRAZIE A SENSORI DI SUONO COLLEGATI A LED//
+//MOVEMENT OF SERVO MOTOR THANKS TO FIVE SOUND SENSORS//
 
 
-#define DEBOUNCE 100 //pausa per minimizzare la registrazione delle onde sonore di rimbalzo
-#define SIGNIFICATIVE_CHANGE 100 //valore che indica un cambio significativo del valore letto dai MIC (se maggiore allora cambia posizione,altrimenti no)
-#define THRESHOLD 300 
+#define DEBOUNCE 100 //pause to minimize the relevation of sound waves that bounce off hard surfaces 
+#define SIGNIFICATIVE_CHANGE 100 //minimum value indicating a significant change in the value read by the sound sensors (if the value read in a certain time is lower 
+//than 100, the servo will not change its position, line 84)
+#define THRESHOLD 300 // value that expresses a significative change related to the sensitivity of sound sensors
 #define CHANGE_DELAY 1000
 
-// SERVO MOTORE
+// SERVO MOTOR
 #include <Servo.h>
-Servo displayServo; // nome del servomotore che controlla la rotazione del display
-int currentMICposition = 0; // dichiariamo una variabile che esprime la posizione del servo motore in gradi 
+Servo displayServo; // naming servo motor 
+int currentMICposition = 0; // variable that indicates the position of servo motor (degrees)
 
 // LED
-int LEDpin[] = {9,10,11,12,13}; // pin digitali a cui sono collegati i LED
-int currentLEDpin = 9; // il primo pin da considerare è il 9 
+int LEDpin[] = {9,10,11,12,13}; // digital pins connected to five LEDS
+int currentLEDpin = 9; // the first pin we are going to consider to associate LEDS to sensors is the number 9 
 
-// MICROFONI
-int MICpin[] = {0, 1, 2, 3, 4}; // pin analogici a cui sono collegati i microfoni
-int currentMICpin = 0; // il primo pin da considerare è lo 0
-int MICposition[] = {18, 54, 90, 126, 162}; // angoli a cui deve posizionarsi il servomotore, cioè quelli in cui ci sono i sensori di suono
-boolean MICstatus; // dichiarare una variabile booleana che indica come è lo stato dei PIR 
-int MICvalues[5] = {0}; //array contenente i valori campionati dei microfoni e codificati su 10 bit 
+// SOUND SENSORS
+int MICpin[] = {0, 1, 2, 3, 4}; // analog pins connected to five sound sensors
+int currentMICpin = 0; // the first pin we are going to consider to associate sensors to LEDS is the number 0 
+int MICposition[] = {18, 54, 90, 126, 162}; // sound sensors are positioned in those angles, that are the same angles which servo motor will reach during its motion
+// 180 deg % 5 = 36 deg, so five 36 deg angles in the middle of which there are the snesors. EX. [0; 36] in position 18 deg there will be a sound sensor
+boolean MICstatus; // boolean variable that indicates sound sensors status 
+int MICvalues[5] = {0}; // array expressing the analog values of sound sensors  
 
-int pastMinMICvalue = 0; //valore passato del maggior rilevamento tra i 5 sensori (in realtàè il valore analogico minimo perchè i MIC lavorano al contrario)
-int pastMICposition = 0; //valore passato del microfono col maggior rilevamento (in realtàè il valore analogico minimo perchè i MIC lavorano al contrario)
+int pastMinMICvalue = 0; // value of the past maximum sound relevation (actually it is the minimum because sound sensors work the opposite way)
+int pastMICposition = 0; // position of the sound sensor that registered the maximum sound value (actually it is the minimum because sound sensors work the opposite way)
 
 void setup(){
   Serial.begin(9600);
-  displayServo.attach(7); // pin a cui è collegato il servomotore 
+  displayServo.attach(7); // digital pin connected to servo motor
 
-  for (int p = 0; p < 5; p++)  { // impostare tutti i sensori di suono come INPUT
+  for (int p = 0; p < 5; p++)  { // set all sound sensors as INPUTS
     pinMode(MICpin[p], INPUT);
   } // end 'p' for
-   for (int n = 0; n < 5; n++)  { // impostare tutti i LED come OUTPUT
+   for (int n = 0; n < 5; n++)  { // set all LEDS as OUTPUTS
     pinMode(LEDpin[n], OUTPUT);
    } // end 'n' for
 
-  displayServo.write(90); // muovere il servomotore al centro (90 gradi), stato iniziale
+  displayServo.write(90); // set the servo motor to 90 degrees as its initial position 
   delay(3000);
   
 }
@@ -44,24 +46,24 @@ void setup(){
 
 void loop(){
   Serial.println("------------");
-  for (int MIC = 0; MIC < 5; MIC++) { // per ogni sensore di suono:
-    currentMICpin = MICpin[MIC]; // imposta il pin del MIC corrente come il pin del MIC del ciclo 
-    currentLEDpin = LEDpin[MIC]; // imposta il pin del LED corrente come il pin del MIC del ciclo
-    MICvalues[MIC] = analogRead(currentMICpin);
-    if(MICvalues[MIC] > THRESHOLD)//se il valore letto è maggiore di un certo valore soglia, sotto il quale considero la variazione di volume irrilevante 
-      digitalWrite(currentLEDpin, LOW);
+  for (int MIC = 0; MIC < 5; MIC++) { // for all the five sound sensors:
+    currentMICpin = MICpin[MIC]; // set current sensor pin as the number of current loop sensor pin 
+    currentLEDpin = LEDpin[MIC]; // set current LED pin as the number of current loop sensor pin 
+    MICvalues[MIC] = analogRead(currentMICpin);// read the analog value of the current loop sensor pin
+    if(MICvalues[MIC] > THRESHOLD) // if the current loop sensor register a value higher than THRESHOLD 
+      digitalWrite(currentLEDpin, LOW); // set the LED connected to that sensor to LOW
     Serial.print("A");
     Serial.print(MIC);
     Serial.print(" : ");
     Serial.println(MICvalues[MIC]);
     
-    delay(DEBOUNCE);
+    delay(DEBOUNCE); 
   }
 
-  int minMIC = 0;  //considero il minimo analogico che corrisponde al massimo di volume registrato
+  int minMIC = 0;  // variable that will be assigned to the minimum analog value registered, corresponding to the maximum volume registered 
   int minMICvalue = MICvalues[minMIC];
   
-  for (int i = 0; i < 5; i++) {   //trovare valore minimo tra i cinque MIC
+  for (int i = 0; i < 5; i++) {   // loop used to find the lowest analog value registered by a sensor, corresponding to the maximum volume registered
     if(minMICvalue > MICvalues[i]) {
       minMICvalue = MICvalues[i];
       minMIC = i;
@@ -75,9 +77,11 @@ void loop(){
   Serial.println(minMICvalue);
   Serial.print("Angle : ");                       
   Serial.println(MICposition[minMIC]);
-  /*sposto motore solo se il rilevamento del suono proviene da una diversa fonte della precedente, se il cambiamento tra i due valori rilevati
-   a t e t-1 sia significativo (analogico) e se ovviamente è sotto una soglia dove il suono è rilevante relativamente alla sensibilità
-  del sensore*/
+  
+  // to obviate the sensitivity of the microphones is added this condition
+  // if the maximum volume registered (minimum analog value) comes from a different sound sensor AND if the difference between the past value regisdtered 
+  // and the current one is higher than SIGNITIFICATIVE_CHANGE AND if that difference is lower than TRESHOLD
+  // change the position of the servo motor to the new position of the sensor who registered the maximum volume (minimum analog value)
   if(pastMICposition != MICposition[minMIC] && abs(minMICvalue - pastMinMICvalue) > SIGNIFICATIVE_CHANGE && minMICvalue < THRESHOLD) {
     displayServo.write(MICposition[minMIC]);
     digitalWrite(currentLEDpin, HIGH);
