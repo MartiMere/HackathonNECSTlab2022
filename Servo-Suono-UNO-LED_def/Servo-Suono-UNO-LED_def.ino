@@ -33,10 +33,10 @@ void setup(){
 
   for (int p = 0; p < 5; p++)  { // set all sound sensors as INPUTS
     pinMode(MICpin[p], INPUT);
-  } // end 'p' for
+  }
    for (int n = 0; n < 5; n++)  { // set all LEDS as OUTPUTS
     pinMode(LEDpin[n], OUTPUT);
-   } // end 'n' for
+   } 
 
   displayServo.write(90); // set the servo motor to 90 degrees as its initial position 
   delay(3000);
