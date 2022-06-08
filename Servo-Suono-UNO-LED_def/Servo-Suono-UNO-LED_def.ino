@@ -79,7 +79,7 @@ void loop(){
   Serial.println(MICposition[minMIC]);
   
   // to obviate the sensitivity of the microphones is added this condition
-  // if the maximum volume registered (minimum analog value) comes from a different sound sensor AND if the difference between the past value regisdtered 
+  // if the maximum volume registered (minimum analog value) comes from a different sound sensor AND if the difference between the past value registered 
   // and the current one is higher than SIGNITIFICATIVE_CHANGE AND if that difference is lower than TRESHOLD
   // change the position of the servo motor to the new position of the sensor who registered the maximum volume (minimum analog value)
   if(pastMICposition != MICposition[minMIC] && abs(minMICvalue - pastMinMICvalue) > SIGNIFICATIVE_CHANGE && minMICvalue < THRESHOLD) {
@@ -91,7 +91,7 @@ void loop(){
     Serial.println(MICposition[minMIC]);
   }
   
-  //aggiorno valori a t-1
+  // update values
   pastMinMICvalue = minMICvalue;
   pastMICposition = MICposition[minMIC];
  
